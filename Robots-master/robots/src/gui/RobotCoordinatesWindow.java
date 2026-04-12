@@ -47,11 +47,11 @@ public class RobotCoordinatesWindow extends JInternalFrame implements RobotModel
         infoPanel.add(directionLabel);
 
         infoPanel.add(new JLabel("Цель X:", SwingConstants.RIGHT));
-        targetXLabel = new JLabel("0.00");
+        targetXLabel = new JLabel("-");
         infoPanel.add(targetXLabel);
 
         infoPanel.add(new JLabel("Цель Y:", SwingConstants.RIGHT));
-        targetYLabel = new JLabel("0.00");
+        targetYLabel = new JLabel("-");
         infoPanel.add(targetYLabel);
 
         panel.add(infoPanel, BorderLayout.CENTER);
@@ -65,16 +65,18 @@ public class RobotCoordinatesWindow extends JInternalFrame implements RobotModel
 
     private void updateCoordinates(RobotModel model)
     {
-        SwingUtilities.invokeLater(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                xLabel.setText(df.format(model.getX()));
-                yLabel.setText(df.format(model.getY()));
-                directionLabel.setText(df.format(Math.toDegrees(model.getDirection())));
-                targetXLabel.setText(df.format(model.getTargetX()));
-                targetYLabel.setText(df.format(model.getTargetY()));
+        SwingUtilities.invokeLater(() -> {
+            xLabel.setText(df.format(model.getX()));
+            yLabel.setText(df.format(model.getY()));
+            directionLabel.setText(df.format(Math.toDegrees(model.getDirection())));
+
+            double[] target = model.getCurrentTarget();
+            if (target != null) {
+                targetXLabel.setText(df.format(target[0]));
+                targetYLabel.setText(df.format(target[1]));
+            } else {
+                targetXLabel.setText("-");
+                targetYLabel.setText("-");
             }
         });
     }
