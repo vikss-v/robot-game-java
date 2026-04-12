@@ -1,6 +1,7 @@
 package model;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class RobotModel {
@@ -8,12 +9,13 @@ public class RobotModel {
     private double y = 100;
     private double direction = 0;
 
-    private double targetX = 150;
-    private double targetY = 100;
+    private final List<double[]> path = new ArrayList<>();
+    private int currentPathIndex = 0;
 
     private final List<RobotModelListener> listeners = new CopyOnWriteArrayList<>();
-    private static final double MAX_VELOCITY = 100.0;
-    private static final double MAX_ANGULAR_VELOCITY = 10.0;
+    private static final double MAX_VELOCITY = 300.0;
+    private static final double MAX_ANGULAR_VELOCITY = 15.0;
+    private static final double WAYPOINT_REACH_DISTANCE = 5.0;
 
     public void addListener(RobotModelListener listener) {
         listeners.add(listener);
@@ -32,32 +34,59 @@ public class RobotModel {
     public double getX() { return x; }
     public double getY() { return y; }
     public double getDirection() { return direction; }
-    public double getTargetX() { return targetX; }
-    public double getTargetY() { return targetY; }
 
-    public void setTargetPosition(double targetX, double targetY) {
-        this.targetX = targetX;
-        this.targetY = targetY;
+    public void setPath(List<double[]> newPath)
+    {
+        synchronized (path) {
+            path.clear();
+            path.addAll(newPath);
+            currentPathIndex = 0;
+        }
         notifyListeners();
     }
 
+    public List<double[]> getPath()
+    {
+        synchronized (path) {
+            return new ArrayList<>(path);
+        }
+    }
+
+    public double[] getCurrentTarget() {
+        synchronized (path) {
+            if (path.isEmpty() || currentPathIndex >= path.size()) {
+                return null;
+            }
+            return path.get(currentPathIndex);
+        }
+    }
+
     public void updateModel(int durationMs) {
-        double distance = distance(targetX, targetY, x, y);
-        if (distance < 0.5) {
+        double[] target = getCurrentTarget();
+        if (target == null) {
+            notifyListeners();
+            return;
+        }
+
+        double distance = distance(target[0], target[1], x, y);
+
+        if (distance < WAYPOINT_REACH_DISTANCE) {
+            synchronized (path) {
+                currentPathIndex++;
+            }
             notifyListeners();
             return;
         }
 
         double velocity = Math.min(MAX_VELOCITY, distance * 5);
-        double angleToTarget = angleTo(x, y, targetX, targetY);
-        double angularVelocity = 0;
+        double angleToTarget = angleTo(x, y, target[0], target[1]);
 
         double angleDifference = asNormalizedRadians(angleToTarget - direction);
-
         if (angleDifference > Math.PI) {
             angleDifference = angleDifference - 2 * Math.PI;
         }
 
+        double angularVelocity = 0;
         if (angleDifference > 0) {
             angularVelocity = MAX_ANGULAR_VELOCITY;
         } else if (angleDifference < 0) {
