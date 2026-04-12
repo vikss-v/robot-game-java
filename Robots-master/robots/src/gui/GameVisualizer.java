@@ -1,13 +1,16 @@
 package gui;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -27,6 +30,9 @@ public class GameVisualizer extends JPanel implements RobotModelListener
         return timer;
     }
 
+    private final List<double[]> drawDraftPath = new ArrayList<>();
+    private boolean drawingMode = false;
+
     public GameVisualizer(RobotModel model)
     {
         this.model = model;
@@ -37,24 +43,52 @@ public class GameVisualizer extends JPanel implements RobotModelListener
             @Override
             public void run()
             {
-                onModelUpdateEvent();
+                model.updateModel(10);
             }
         }, 0, 10);
 
-        addMouseListener(new MouseAdapter()
-        {
+        MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e)
-            {
-                model.setTargetPosition(e.getPoint().x, e.getPoint().y);
+            public void mousePressed(MouseEvent e) {
+                if (!drawingMode) return;
+                drawDraftPath.clear();
+                drawDraftPath.add(toListModelCoords(e.getX(), e.getY()));
             }
-        });
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (!drawingMode) return;
+                drawDraftPath.add(toListModelCoords(e.getX(), e.getY()));
+                repaint();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (!drawingMode || drawDraftPath.isEmpty()) return;
+                model.setPath(new ArrayList<>(drawDraftPath));
+                drawDraftPath.clear();
+                repaint();
+            }
+        };
+        addMouseListener(mouseAdapter);
+        addMouseMotionListener(mouseAdapter);
         setDoubleBuffered(true);
     }
 
-    protected void onModelUpdateEvent()
-    {
-        model.updateModel(10);
+    public void setDrawingMode(boolean enabled) {
+        drawingMode = enabled;
+        if (!enabled) {
+            drawDraftPath.clear();
+            repaint();
+        }
+    }
+
+    public boolean isDrawingMode() {
+        return drawingMode;
+    }
+
+    private double[] toListModelCoords(int screenX, int screenY) {
+        return new double[]{screenX, screenY};
     }
 
     @Override
@@ -64,16 +98,45 @@ public class GameVisualizer extends JPanel implements RobotModelListener
 
     private static int round(double value)
     {
-        return (int)(value + 0.5);
+        return (int) (value + 0.5);
     }
 
     @Override
-    public void paint(Graphics g)
-    {
+    public void paint(Graphics g) {
         super.paint(g);
-        Graphics2D g2d = (Graphics2D)g;
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        drawPath(g2d, model.getPath(), new Color(110, 100, 255), false);
+        drawPath(g2d, drawDraftPath, new Color(109, 255, 60), true);
+
         drawRobot(g2d, round(model.getX()), round(model.getY()), model.getDirection());
-        drawTarget(g2d, round(model.getTargetX()), round(model.getTargetY()));
+    }
+
+    private void drawPath(Graphics2D g, List<double[]> path, Color color, boolean isDraft) {
+        if (path.size() < 2) return;
+
+        g.setTransform(new AffineTransform());
+        g.setColor(color);
+
+        if (isDraft) {
+            g.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f, new float[]{6f, 4f}, 0f));
+        } else {
+            g.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        }
+
+        for (int i = 1; i < path.size(); i++) {
+            double[] prev = path.get(i - 1);
+            double[] curr = path.get(i);
+            g.drawLine(round(prev[0]), round(prev[1]), round(curr[0]), round(curr[1]));
+        }
+
+        if (!path.isEmpty()) {
+            double[] first = path.get(0);
+            g.setColor(color.darker());
+            g.setStroke(new BasicStroke(1f));
+            fillOval(g, round(first[0]), round(first[1]), 8, 8);
+        }
     }
 
     private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
@@ -101,14 +164,5 @@ public class GameVisualizer extends JPanel implements RobotModelListener
         g.setColor(Color.BLACK);
         drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
         g.setTransform(new AffineTransform());
-    }
-
-    private void drawTarget(Graphics2D g, int x, int y)
-    {
-        g.setTransform(new AffineTransform());
-        g.setColor(Color.GREEN);
-        fillOval(g, x, y, 5, 5);
-        g.setColor(Color.BLACK);
-        drawOval(g, x, y, 5, 5);
     }
 }
