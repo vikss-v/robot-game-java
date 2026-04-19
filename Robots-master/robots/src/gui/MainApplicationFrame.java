@@ -25,16 +25,12 @@ import java.beans.PropertyVetoException;
 
 import log.Logger;
 import model.RobotModel;
+import model.ThemeManager;
 
-/**
- * Что требуется сделать:
- * 1. Метод создания меню перегружен функционалом и трудно читается.
- * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
- *
- */
 public class MainApplicationFrame extends JFrame
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
+    private final ThemeManager themeManager = new ThemeManager();
 
     private static final String CONFIG_DIR = System.getProperty("user.home");
     private static final String CONFIG_FILE = CONFIG_DIR + File.separator + "robots_config.properties";
@@ -42,8 +38,6 @@ public class MainApplicationFrame extends JFrame
     private final RobotModel robotModel = new RobotModel();
 
     public MainApplicationFrame() {
-        //Make the big window be indented 50 pixels from each edge
-        //of the screen.
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
@@ -52,16 +46,18 @@ public class MainApplicationFrame extends JFrame
 
         setContentPane(desktopPane);
 
-
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
 
-        GameWindow gameWindow = new GameWindow(robotModel);
+        GameWindow gameWindow = new GameWindow(robotModel, themeManager);
         gameWindow.setSize(400, 400);
         addWindow(gameWindow);
 
         RobotCoordinatesWindow coordinatesWindow = new RobotCoordinatesWindow(robotModel);
         addWindow(coordinatesWindow);
+
+        SettingsWindow settingsWindow = new SettingsWindow(themeManager, gameWindow);
+        addWindow(settingsWindow);
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -83,35 +79,6 @@ public class MainApplicationFrame extends JFrame
         desktopPane.add(frame);
         frame.setVisible(true);
     }
-
-//    protected JMenuBar createMenuBar() {
-//        JMenuBar menuBar = new JMenuBar();
-//
-//        //Set up the lone menu.
-//        JMenu menu = new JMenu("Document");
-//        menu.setMnemonic(KeyEvent.VK_D);
-//        menuBar.add(menu);
-//
-//        //Set up the first menu item.
-//        JMenuItem menuItem = new JMenuItem("New");
-//        menuItem.setMnemonic(KeyEvent.VK_N);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_N, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("new");
-////        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-//
-//        //Set up the second menu item.
-//        menuItem = new JMenuItem("Quit");
-//        menuItem.setMnemonic(KeyEvent.VK_Q);
-//        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-//                KeyEvent.VK_Q, ActionEvent.ALT_MASK));
-//        menuItem.setActionCommand("quit");
-    ////        menuItem.addActionListener(this);
-//        menu.add(menuItem);
-//
-//        return menuBar;
-//    }
 
     private void saveWindowStates()
     {
@@ -298,15 +265,11 @@ public class MainApplicationFrame extends JFrame
         catch (ClassNotFoundException | InstantiationException
                | IllegalAccessException | UnsupportedLookAndFeelException e)
         {
-            // just ignore
         }
     }
 
     private void exitApplication()
     {
-//        UIManager.put("OptionPane.yesButtonText", "Да");
-//        UIManager.put("OptionPane.noButtonText", "Нет");
-
         int result = JOptionPane.showConfirmDialog(
                 this,
                 "Вы действительно хотите выйти из приложения?",
@@ -314,9 +277,6 @@ public class MainApplicationFrame extends JFrame
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );
-
-//        UIManager.put("OptionPane.yesButtonText", null);
-//        UIManager.put("OptionPane.noButtonText", null);
 
         if (result == JOptionPane.YES_OPTION) {
             saveWindowStates();

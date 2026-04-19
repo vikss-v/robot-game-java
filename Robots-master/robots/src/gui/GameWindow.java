@@ -8,20 +8,25 @@ import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
 import model.RobotModel;
+import model.ThemeManager;
 
 public class GameWindow extends JInternalFrame
 {
     private final GameVisualizer m_visualizer;
 
-    public GameWindow(RobotModel model)
+    public GameWindow(RobotModel model, ThemeManager themeManager)
     {
         super("Игровое поле", true, true, true, true);
-        m_visualizer = new GameVisualizer(model);
+        m_visualizer = new GameVisualizer(model, themeManager);
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_visualizer, BorderLayout.CENTER);
         panel.add(createToolbar(), BorderLayout.SOUTH);
         getContentPane().add(panel);
         pack();
+    }
+
+    public GameVisualizer getVisualizer() {
+        return m_visualizer;
     }
 
     private JPanel createToolbar() {
