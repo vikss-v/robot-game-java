@@ -3,6 +3,7 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.util.Random;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -22,6 +23,7 @@ public class SettingsWindow extends JInternalFrame
 {
     private final ThemeManager themeManager;
     private final GameWindow gameWindow;
+    private final Random random = new Random();
 
     private JComboBox<String> robotCombo;
     private JComboBox<String> targetCombo;
@@ -55,7 +57,7 @@ public class SettingsWindow extends JInternalFrame
 
         getContentPane().add(mainPanel);
 
-        setSize(400, 300);
+        setSize(400, 350);
         setLocation(700, 100);
     }
 
@@ -119,11 +121,30 @@ public class SettingsWindow extends JInternalFrame
         return panel;
     }
 
+    private void applyRandomThemes() {
+        int robotIndex = random.nextInt(themeManager.getRobotThemes().size());
+        int targetIndex = random.nextInt(themeManager.getTargetThemes().size());
+        int bgIndex = random.nextInt(themeManager.getBackgroundThemes().size());
+
+        selectedRobotTheme = themeManager.getRobotThemes().get(robotIndex);
+        selectedTargetTheme = themeManager.getTargetThemes().get(targetIndex);
+        selectedBackgroundTheme = themeManager.getBackgroundThemes().get(bgIndex);
+
+        robotCombo.setSelectedItem(selectedRobotTheme.name);
+        targetCombo.setSelectedItem(selectedTargetTheme.name);
+        backgroundCombo.setSelectedItem(selectedBackgroundTheme.name);
+    }
+
     private JPanel createButtonPanel() {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
+        JButton randomButton = new JButton("Случайная тема");
         JButton applyButton = new JButton("Применить");
         JButton closeButton = new JButton("Закрыть");
+
+        randomButton.addActionListener(e -> {
+            applyRandomThemes();
+        });
 
         applyButton.addActionListener(e -> {
             themeManager.setCurrentRobotTheme(selectedRobotTheme);
@@ -140,6 +161,7 @@ public class SettingsWindow extends JInternalFrame
             dispose();
         });
 
+        buttonPanel.add(randomButton);
         buttonPanel.add(applyButton);
         buttonPanel.add(closeButton);
 
