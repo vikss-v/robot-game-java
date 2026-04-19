@@ -1,0 +1,11 @@
+{
+  "name": "Стандартный робот",
+  "bodyColor": "#FF00FF",
+  "borderColor": "#000000",
+  "eyeColor": "#FFFFFF",
+  "eyeBorderColor": "#000000",
+  "bodyWidth": 30,
+  "bodyHeight": 10,
+  "eyeSize": 5,
+  "eyeOffsetX": 10
+}

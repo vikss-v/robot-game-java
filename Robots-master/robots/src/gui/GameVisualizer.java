@@ -18,10 +18,13 @@ import javax.swing.JPanel;
 
 import model.RobotModel;
 import model.RobotModelListener;
+import model.ThemeData;
+import model.ThemeManager;
 
 public class GameVisualizer extends JPanel implements RobotModelListener
 {
     private final RobotModel model;
+    private final ThemeManager themeManager;
     private final Timer m_timer = initTimer();
 
     private static Timer initTimer()
@@ -32,10 +35,12 @@ public class GameVisualizer extends JPanel implements RobotModelListener
 
     private final List<double[]> drawDraftPath = new ArrayList<>();
     private boolean drawingMode = false;
+    private double[] singleClickTarget = null;
 
-    public GameVisualizer(RobotModel model)
+    public GameVisualizer(RobotModel model, ThemeManager themeManager)
     {
         this.model = model;
+        this.themeManager = themeManager;
         this.model.addListener(this);
 
         m_timer.schedule(new TimerTask()
@@ -50,41 +55,75 @@ public class GameVisualizer extends JPanel implements RobotModelListener
         MouseAdapter mouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (!drawingMode) return;
-                drawDraftPath.clear();
-                drawDraftPath.add(toListModelCoords(e.getX(), e.getY()));
+                if (drawingMode) {
+                    drawDraftPath.clear();
+                    drawDraftPath.add(toListModelCoords(e.getX(), e.getY()));
+                }
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (!drawingMode) return;
-                drawDraftPath.add(toListModelCoords(e.getX(), e.getY()));
-                repaint();
+                if (drawingMode) {
+                    drawDraftPath.add(toListModelCoords(e.getX(), e.getY()));
+                    repaint();
+                }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (!drawingMode || drawDraftPath.isEmpty()) return;
-                model.setPath(new ArrayList<>(drawDraftPath));
-                drawDraftPath.clear();
-                repaint();
+                if (drawingMode) {
+                    if (drawDraftPath.size() >= 2) {
+                        model.setPath(new ArrayList<>(drawDraftPath));
+                        singleClickTarget = null;
+                    }
+                    drawDraftPath.clear();
+                    repaint();
+                }
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (!drawingMode) {
+                    double[] target = toListModelCoords(e.getX(), e.getY());
+                    List<double[]> singlePointPath = new ArrayList<>();
+                    singlePointPath.add(target);
+                    model.setPath(singlePointPath);
+                    singleClickTarget = target;
+                    repaint();
+                }
             }
         };
         addMouseListener(mouseAdapter);
         addMouseMotionListener(mouseAdapter);
         setDoubleBuffered(true);
+
+        applyTheme();
     }
 
     public void setDrawingMode(boolean enabled) {
         drawingMode = enabled;
-        if (!enabled) {
+        if (enabled) {
+            model.setPath(new ArrayList<>());
+            singleClickTarget = null;
             drawDraftPath.clear();
-            repaint();
+        } else {
+            drawDraftPath.clear();
         }
+        repaint();
     }
 
     public boolean isDrawingMode() {
         return drawingMode;
+    }
+
+    public void applyTheme() {
+        ThemeData.BackgroundTheme bgTheme = themeManager.getCurrentBackgroundTheme();
+        setBackground(bgTheme.getBackgroundColor());
+        repaint();
+    }
+
+    public void refreshTheme() {
+        applyTheme();
     }
 
     private double[] toListModelCoords(int screenX, int screenY) {
@@ -107,10 +146,46 @@ public class GameVisualizer extends JPanel implements RobotModelListener
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        drawPath(g2d, model.getPath(), new Color(110, 100, 255), false);
-        drawPath(g2d, drawDraftPath, new Color(109, 255, 60), true);
+        ThemeData.BackgroundTheme bgTheme = themeManager.getCurrentBackgroundTheme();
+
+        drawPath(g2d, model.getPath(), bgTheme.getPathColor(), false);
+        drawPath(g2d, drawDraftPath, bgTheme.getDraftPathColor(), true);
+
+        if (singleClickTarget != null && model.getPath().size() == 1) {
+            drawTargetPoint(g2d, singleClickTarget);
+        }
 
         drawRobot(g2d, round(model.getX()), round(model.getY()), model.getDirection());
+    }
+
+    private void drawTargetPoint(Graphics2D g, double[] target) {
+        ThemeData.TargetTheme targetTheme = themeManager.getCurrentTargetTheme();
+
+        int x = round(target[0]);
+        int y = round(target[1]);
+
+        AffineTransform oldTransform = g.getTransform();
+        g.setTransform(new AffineTransform());
+        g.setColor(targetTheme.getColor());
+
+        int size = targetTheme.size;
+
+        switch (targetTheme.shape) {
+            case "square":
+                g.fillRect(x - size/2, y - size/2, size, size);
+                break;
+            case "cross":
+                g.setStroke(new BasicStroke(2f));
+                g.drawLine(x - size, y - size, x + size, y + size);
+                g.drawLine(x + size, y - size, x - size, y + size);
+                break;
+            case "circle":
+            default:
+                g.fillOval(x - size/2, y - size/2, size, size);
+                break;
+        }
+
+        g.setTransform(oldTransform);
     }
 
     private void drawPath(Graphics2D g, List<double[]> path, Color color, boolean isDraft) {
@@ -151,18 +226,23 @@ public class GameVisualizer extends JPanel implements RobotModelListener
 
     private void drawRobot(Graphics2D g, int x, int y, double direction)
     {
+        ThemeData.RobotTheme robotTheme = themeManager.getCurrentRobotTheme();
+
         int robotCenterX = x;
         int robotCenterY = y;
         AffineTransform t = AffineTransform.getRotateInstance(direction, robotCenterX, robotCenterY);
         g.setTransform(t);
-        g.setColor(Color.MAGENTA);
-        fillOval(g, robotCenterX, robotCenterY, 30, 10);
-        g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX, robotCenterY, 30, 10);
-        g.setColor(Color.WHITE);
-        fillOval(g, robotCenterX + 10, robotCenterY, 5, 5);
-        g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+
+        g.setColor(robotTheme.getBodyColor());
+        fillOval(g, robotCenterX, robotCenterY, robotTheme.bodyWidth, robotTheme.bodyHeight);
+        g.setColor(robotTheme.getBorderColor());
+        drawOval(g, robotCenterX, robotCenterY, robotTheme.bodyWidth, robotTheme.bodyHeight);
+
+        g.setColor(robotTheme.getEyeColor());
+        fillOval(g, robotCenterX + robotTheme.eyeOffsetX, robotCenterY, robotTheme.eyeSize, robotTheme.eyeSize);
+        g.setColor(robotTheme.getEyeBorderColor());
+        drawOval(g, robotCenterX + robotTheme.eyeOffsetX, robotCenterY, robotTheme.eyeSize, robotTheme.eyeSize);
+
         g.setTransform(new AffineTransform());
     }
 }
