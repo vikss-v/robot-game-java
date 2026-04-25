@@ -25,22 +25,13 @@ public class ThemeManager {
     }
 
     private void loadAllThemes() {
-        robotThemes = loadThemesFromClasspath("/themes/robots/", "robot");
-        targetThemes = loadThemesFromClasspath("/themes/targets/", "target");
-        backgroundThemes = loadThemesFromClasspath("/themes/backgrounds/", "background");
+        robotThemes = loadThemesFromClasspath("/themes/robots", "robot");
+        targetThemes = loadThemesFromClasspath("/themes/targets", "target");
+        backgroundThemes = loadThemesFromClasspath("/themes/backgrounds", "background");
 
-        if (robotThemes.isEmpty()) {
-            Logger.debug("Темы роботов не найдены, создаём тему по умолчанию");
-            robotThemes.add(createDefaultRobotTheme());
-        }
-        if (targetThemes.isEmpty()) {
-            Logger.debug("Темы целей не найдены, создаём тему по умолчанию");
-            targetThemes.add(createDefaultTargetTheme());
-        }
-        if (backgroundThemes.isEmpty()) {
-            Logger.debug("Темы фона не найдены, создаём тему по умолчанию");
-            backgroundThemes.add(createDefaultBackgroundTheme());
-        }
+        if (robotThemes.isEmpty()) robotThemes.add(createDefaultRobotTheme());
+        if (targetThemes.isEmpty()) targetThemes.add(createDefaultTargetTheme());
+        if (backgroundThemes.isEmpty()) backgroundThemes.add(createDefaultBackgroundTheme());
 
         currentRobotTheme = robotThemes.get(0);
         currentTargetTheme = targetThemes.get(0);
@@ -49,7 +40,6 @@ public class ThemeManager {
 
     private <T> List<T> loadThemesFromClasspath(String resourcePath, String type) {
         List<T> themes = new ArrayList<>();
-
         try {
             URL resourceUrl = getClass().getResource(resourcePath);
             if (resourceUrl == null) {
@@ -57,44 +47,20 @@ public class ThemeManager {
                 return themes;
             }
 
-            Path dir;
-            try {
-                dir = Paths.get(resourceUrl.toURI());
-            } catch (Exception e) {
-                Logger.debug("Не удалось получить URI для " + resourcePath + ", используем getPath(): " + e.getMessage());
-                dir = Paths.get(resourceUrl.getPath());
-            }
+            Path dirPath = Paths.get(resourceUrl.toURI());
 
-            if (!Files.exists(dir)) {
-                Logger.debug("Директория не существует: " + resourcePath);
-                return themes;
-            }
-
-            File folder = dir.toFile();
-            File[] files = folder.listFiles();
-
-            if (files != null) {
-                for (int i = 0; i < files.length; i++) {
-                    File file = files[i];
-
-                    if (file.isFile() && file.getName().endsWith(".json")) {
-                        try {
-                            String json = readFileToString(file);
-                            T theme = parseTheme(json, type);
-                            if (theme != null) {
-                                themes.add(theme);
-                            }
-                        } catch (Exception e) {
-                            Logger.error("Ошибка загрузки темы из файла " + file.getName() + ": " + e.getMessage());
-                        }
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, "*.json")) {
+                for (Path entry : stream) {
+                    String json = new String(Files.readAllBytes(entry));
+                    T theme = parseTheme(json, type);
+                    if (theme != null) {
+                        themes.add(theme);
                     }
                 }
             }
-
         } catch (Exception e) {
-            Logger.error("Ошибка загрузки тем из " + resourcePath + ": " + e.getMessage());
+            Logger.error("Ошибка при чтении папки " + resourcePath + ": " + e.getMessage());
         }
-
         return themes;
     }
 
@@ -109,36 +75,10 @@ public class ThemeManager {
                     robot.borderColor = extractJsonValue(json, "borderColor");
                     robot.eyeColor = extractJsonValue(json, "eyeColor");
                     robot.eyeBorderColor = extractJsonValue(json, "eyeBorderColor");
-
-                    String bodyWidth = extractJsonValue(json, "bodyWidth");
-                    String bodyHeight = extractJsonValue(json, "bodyHeight");
-                    String eyeSize = extractJsonValue(json, "eyeSize");
-                    String eyeOffsetX = extractJsonValue(json, "eyeOffsetX");
-
-                    if (bodyWidth != null) {
-                        robot.bodyWidth = Integer.parseInt(bodyWidth);
-                    } else {
-                        robot.bodyWidth = 30;
-                    }
-
-                    if (bodyHeight != null) {
-                        robot.bodyHeight = Integer.parseInt(bodyHeight);
-                    } else {
-                        robot.bodyHeight = 10;
-                    }
-
-                    if (eyeSize != null) {
-                        robot.eyeSize = Integer.parseInt(eyeSize);
-                    } else {
-                        robot.eyeSize = 5;
-                    }
-
-                    if (eyeOffsetX != null) {
-                        robot.eyeOffsetX = Integer.parseInt(eyeOffsetX);
-                    } else {
-                        robot.eyeOffsetX = 10;
-                    }
-
+                    robot.bodyWidth = parseOptionalInt(extractJsonValue(json, "bodyWidth"), 30);
+                    robot.bodyHeight = parseOptionalInt(extractJsonValue(json, "bodyHeight"), 10);
+                    robot.eyeSize = parseOptionalInt(extractJsonValue(json, "eyeSize"), 5);
+                    robot.eyeOffsetX = parseOptionalInt(extractJsonValue(json, "eyeOffsetX"), 10);
                     return (T) robot;
 
                 case "target":
@@ -146,10 +86,7 @@ public class ThemeManager {
                     target.name = extractJsonValue(json, "name");
                     target.color = extractJsonValue(json, "color");
                     target.shape = extractJsonValue(json, "shape");
-
-                    String size = extractJsonValue(json, "size");
-                    target.size = size != null ? Integer.parseInt(size) : 8;
-
+                    target.size = parseOptionalInt(extractJsonValue(json, "size"), 8);
                     return (T) target;
 
                 case "background":
@@ -158,28 +95,20 @@ public class ThemeManager {
                     bg.backgroundColor = extractJsonValue(json, "backgroundColor");
                     bg.pathColor = extractJsonValue(json, "pathColor");
                     bg.draftPathColor = extractJsonValue(json, "draftPathColor");
-
                     return (T) bg;
 
-                default:
-                    Logger.debug("Неизвестный тип темы: " + type);
-                    return null;
+                default: return null;
             }
         } catch (Exception e) {
-            Logger.error("Ошибка парсинга темы типа " + type + ": " + e.getMessage());
+            Logger.error("Ошибка парсинга JSON темы (" + type + "): " + e.getMessage());
             return null;
         }
     }
 
-    private String readFileToString(File file) throws IOException {
-        StringBuilder content = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line);
-            }
-        }
-        return content.toString();
+    private int parseOptionalInt(String value, int defaultValue) {
+        if (value == null) return defaultValue;
+        try { return Integer.parseInt(value); }
+        catch (NumberFormatException e) { return defaultValue; }
     }
 
     private String extractJsonValue(String json, String key) {
@@ -191,119 +120,43 @@ public class ThemeManager {
         if (colonIndex == -1) return null;
 
         int startIndex = colonIndex + 1;
-        while (startIndex < json.length() && Character.isWhitespace(json.charAt(startIndex))) {
-            startIndex++;
-        }
-        if (startIndex >= json.length()) return null;
+        while (startIndex < json.length() && Character.isWhitespace(json.charAt(startIndex))) startIndex++;
 
-        char firstChar = json.charAt(startIndex);
-
-        if (firstChar == '"') {
-            int endQuote = findMatchingQuote(json, startIndex + 1);
-            if (endQuote == -1) return null;
+        if (json.charAt(startIndex) == '"') {
+            int endQuote = json.indexOf("\"", startIndex + 1);
             return json.substring(startIndex + 1, endQuote);
         } else {
             int endValue = startIndex;
-            while (endValue < json.length()) {
-                char c = json.charAt(endValue);
-                if (c == ',' || c == '}' || Character.isWhitespace(c)) {
-                    break;
-                }
-                endValue++;
-            }
+            while (endValue < json.length() && !String.valueOf(json.charAt(endValue)).matches("[,\\}\\s]")) endValue++;
             return json.substring(startIndex, endValue);
         }
     }
 
-    private int findMatchingQuote(String json, int start) {
-        for (int i = start; i < json.length(); i++) {
-            char c = json.charAt(i);
-            if (c == '"') {
-                if (i > 0 && json.charAt(i - 1) != '\\') {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-
-    private ThemeData.RobotTheme createDefaultRobotTheme() {
-        Logger.debug("Создаём стандартную тему робота");
-        ThemeData.RobotTheme theme = new ThemeData.RobotTheme();
-        theme.name = "Стандартный робот";
-        theme.bodyColor = "#FF00FF";
-        theme.borderColor = "#000000";
-        theme.eyeColor = "#FFFFFF";
-        theme.eyeBorderColor = "#000000";
-        theme.bodyWidth = 30;
-        theme.bodyHeight = 10;
-        theme.eyeSize = 5;
-        theme.eyeOffsetX = 10;
-        return theme;
-    }
-
-    private ThemeData.TargetTheme createDefaultTargetTheme() {
-        Logger.debug("Создаём стандартную тему цели");
-        ThemeData.TargetTheme theme = new ThemeData.TargetTheme();
-        theme.name = "Красная точка";
-        theme.color = "#FF3232";
-        theme.size = 8;
-        theme.shape = "circle";
-        return theme;
-    }
-
-    private ThemeData.BackgroundTheme createDefaultBackgroundTheme() {
-        Logger.debug("Создаём стандартную тему фона");
-        ThemeData.BackgroundTheme theme = new ThemeData.BackgroundTheme();
-        theme.name = "Светлая";
-        theme.backgroundColor = "#FFFFFF";
-        theme.pathColor = "#6E64FF";
-        theme.draftPathColor = "#6DFF3C";
-        return theme;
-    }
-
     private void loadSavedThemes() {
         File configFile = new File(CONFIG_FILE);
-        if (!configFile.exists()) {
-            Logger.debug("Файл конфигурации тем не найден: " + CONFIG_FILE);
-            return;
-        }
+        if (!configFile.exists()) return;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
             String robotName = reader.readLine();
             String targetName = reader.readLine();
             String bgName = reader.readLine();
 
-            if (robotName != null && !robotName.isEmpty()) {
-                ThemeData.RobotTheme found = findRobotThemeByName(robotName);
-                if (found != null) {
-                    currentRobotTheme = found;
-                    Logger.debug("Загружена тема робота: " + robotName);
-                } else {
-                    Logger.debug("Тема робота не найдена: " + robotName);
-                }
-            }
-            if (targetName != null && !targetName.isEmpty()) {
-                ThemeData.TargetTheme found = findTargetThemeByName(targetName);
-                if (found != null) {
-                    currentTargetTheme = found;
-                    Logger.debug("Загружена тема цели: " + targetName);
-                } else {
-                    Logger.debug("Тема цели не найдена: " + targetName);
-                }
-            }
-            if (bgName != null && !bgName.isEmpty()) {
-                ThemeData.BackgroundTheme found = findBackgroundThemeByName(bgName);
-                if (found != null) {
-                    currentBackgroundTheme = found;
-                    Logger.debug("Загружена тема фона: " + bgName);
-                } else {
-                    Logger.debug("Тема фона не найдена: " + bgName);
-                }
-            }
+            currentRobotTheme = findByName(robotThemes, robotName, currentRobotTheme);
+            currentTargetTheme = findByName(targetThemes, targetName, currentTargetTheme);
+            currentBackgroundTheme = findByName(backgroundThemes, bgName, currentBackgroundTheme);
         } catch (IOException e) {
-            Logger.error("Ошибка загрузки конфигурации тем: " + e.getMessage());
+            Logger.error("Ошибка загрузки конфигурации: " + e.getMessage());
         }
+    }
+
+    private <T> T findByName(List<T> list, String name, T defaultTheme) {
+        if (name == null) return defaultTheme;
+        for (T item : list) {
+            try {
+                if (item.getClass().getField("name").get(item).equals(name)) return item;
+            } catch (Exception ignored) {}
+        }
+        return defaultTheme;
     }
 
     public void saveCurrentThemes() {
@@ -311,34 +164,29 @@ public class ThemeManager {
             writer.println(currentRobotTheme.name);
             writer.println(currentTargetTheme.name);
             writer.println(currentBackgroundTheme.name);
-            Logger.debug("Темы сохранены: робот=" + currentRobotTheme.name + ", цель=" + currentTargetTheme.name + ", фон=" + currentBackgroundTheme.name);
         } catch (IOException e) {
-            Logger.error("Ошибка сохранения конфигурации тем: " + e.getMessage());
+            Logger.error("Ошибка сохранения конфигурации: " + e.getMessage());
         }
     }
 
-    private ThemeData.RobotTheme findRobotThemeByName(String name) {
-        if (name == null) return null;
-        for (ThemeData.RobotTheme theme : robotThemes) {
-            if (theme.name != null && theme.name.equals(name)) return theme;
-        }
-        return null;
+    private ThemeData.RobotTheme createDefaultRobotTheme() {
+        ThemeData.RobotTheme t = new ThemeData.RobotTheme();
+        t.name = "Стандартный робот"; t.bodyColor = "#FF00FF"; t.borderColor = "#000000";
+        t.eyeColor = "#FFFFFF"; t.eyeBorderColor = "#000000"; t.bodyWidth = 30;
+        t.bodyHeight = 10; t.eyeSize = 5; t.eyeOffsetX = 10;
+        return t;
     }
 
-    private ThemeData.TargetTheme findTargetThemeByName(String name) {
-        if (name == null) return null;
-        for (ThemeData.TargetTheme theme : targetThemes) {
-            if (theme.name != null && theme.name.equals(name)) return theme;
-        }
-        return null;
+    private ThemeData.TargetTheme createDefaultTargetTheme() {
+        ThemeData.TargetTheme t = new ThemeData.TargetTheme();
+        t.name = "Красная точка"; t.color = "#FF3232"; t.size = 8; t.shape = "circle";
+        return t;
     }
 
-    private ThemeData.BackgroundTheme findBackgroundThemeByName(String name) {
-        if (name == null) return null;
-        for (ThemeData.BackgroundTheme theme : backgroundThemes) {
-            if (theme.name != null && theme.name.equals(name)) return theme;
-        }
-        return null;
+    private ThemeData.BackgroundTheme createDefaultBackgroundTheme() {
+        ThemeData.BackgroundTheme t = new ThemeData.BackgroundTheme();
+        t.name = "Светлая"; t.backgroundColor = "#FFFFFF"; t.pathColor = "#6E64FF"; t.draftPathColor = "#6DFF3C";
+        return t;
     }
 
     public List<ThemeData.RobotTheme> getRobotThemes() { return robotThemes; }

@@ -140,7 +140,6 @@ public class SettingsWindow extends JInternalFrame
 
         JButton randomButton = new JButton("Случайная тема");
         JButton applyButton = new JButton("Применить");
-        JButton closeButton = new JButton("Закрыть");
 
         randomButton.addActionListener(e -> {
             applyRandomThemes();
@@ -157,13 +156,8 @@ public class SettingsWindow extends JInternalFrame
             JOptionPane.showMessageDialog(this, "Настройки успешно применены!", "Успех", JOptionPane.INFORMATION_MESSAGE);
         });
 
-        closeButton.addActionListener(e -> {
-            dispose();
-        });
-
         buttonPanel.add(randomButton);
         buttonPanel.add(applyButton);
-        buttonPanel.add(closeButton);
 
         return buttonPanel;
     }
