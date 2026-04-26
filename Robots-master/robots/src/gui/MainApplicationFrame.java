@@ -26,6 +26,8 @@ import java.beans.PropertyVetoException;
 import log.Logger;
 import model.RobotModel;
 import model.ThemeManager;
+import java.awt.Color;
+import model.SnakeModel;
 
 public class MainApplicationFrame extends JFrame
 {
@@ -196,6 +198,7 @@ public class MainApplicationFrame extends JFrame
         menuBar.add(createFileMenu());
         menuBar.add(createLookAndFeelMenu());
         menuBar.add(createTestMenu());
+        menuBar.add(createGameMenu());
 
         return menuBar;
     }
@@ -281,6 +284,81 @@ public class MainApplicationFrame extends JFrame
         if (result == JOptionPane.YES_OPTION) {
             saveWindowStates();
             System.exit(0);
+        }
+    }
+
+    private JMenu createGameMenu() {
+        JMenu gameMenu = new JMenu("Игра");
+        gameMenu.setMnemonic(KeyEvent.VK_G);
+
+        JMenuItem snakeItem = new JMenuItem("Битва червяков", KeyEvent.VK_C);
+        snakeItem.addActionListener(e -> openSnakeGame());
+        gameMenu.add(snakeItem);
+
+        return gameMenu;
+    }
+
+    private void openSnakeGame() {
+        SnakeSetupDialog dialog = new SnakeSetupDialog(this);
+        SnakeSetupDialog.Config config = dialog.getResult();
+        if (config == null) return;
+
+        Color bgColor = SnakeSetupDialog.getBgColors()[
+                java.util.Arrays.asList(
+                        new String[]{"Светлая", "Тёмная", "Аврора", "Закат"}
+                ).indexOf(config.backgroundKey)
+                ];
+        if (bgColor == null) bgColor = Color.WHITE;
+
+        SnakeModel snakeModel = new SnakeModel(600, 500,
+                config.name1, config.color1,
+                config.name2, config.color2);
+
+        SnakeGameWindow snakeWindow = new SnakeGameWindow(snakeModel, bgColor);
+        addWindow(snakeWindow);
+        restoreFrameState(snakeWindow, 0, 0, 616, 590);
+
+        snakeWindow.addInternalFrameListener(new javax.swing.event.InternalFrameAdapter() {
+            @Override
+            public void internalFrameClosing(javax.swing.event.InternalFrameEvent e) {
+                saveFrameState(snakeWindow);
+            }
+        });
+    }
+
+    private void saveFrameState(JInternalFrame frame) {
+        Properties props = new Properties();
+        File configFile = new File(CONFIG_FILE);
+        if (configFile.exists()) {
+            try (FileInputStream in = new FileInputStream(configFile)) {
+                props.load(in);
+            } catch (IOException ignored) {}
+        }
+        String title = frame.getTitle();
+        props.setProperty(title + ".x",        String.valueOf(frame.getX()));
+        props.setProperty(title + ".y",        String.valueOf(frame.getY()));
+        props.setProperty(title + ".width",    String.valueOf(frame.getWidth()));
+        props.setProperty(title + ".height",   String.valueOf(frame.getHeight()));
+        props.setProperty(title + ".iconified", String.valueOf(frame.isIcon()));
+        try (FileOutputStream out = new FileOutputStream(configFile)) {
+            props.store(out, null);
+        } catch (IOException ignored) {}
+    }
+
+    private void restoreFrameState(JInternalFrame frame, int defX, int defY, int defW, int defH) {
+        File configFile = new File(CONFIG_FILE);
+        if (!configFile.exists()) { frame.setLocation(defX, defY); frame.setSize(defW, defH); return; }
+        Properties props = new Properties();
+        try (FileInputStream in = new FileInputStream(configFile)) { props.load(in); }
+        catch (IOException e) { frame.setLocation(defX, defY); frame.setSize(defW, defH); return; }
+        String title = frame.getTitle();
+        if (props.getProperty(title + ".x") == null) { frame.setLocation(defX, defY); frame.setSize(defW, defH); return; }
+        frame.setLocation(Integer.parseInt(props.getProperty(title + ".x")),
+                Integer.parseInt(props.getProperty(title + ".y")));
+        frame.setSize(Integer.parseInt(props.getProperty(title + ".width")),
+                Integer.parseInt(props.getProperty(title + ".height")));
+        if (Boolean.parseBoolean(props.getProperty(title + ".iconified", "false"))) {
+            try { frame.setIcon(true); } catch (java.beans.PropertyVetoException ignored) {}
         }
     }
 
