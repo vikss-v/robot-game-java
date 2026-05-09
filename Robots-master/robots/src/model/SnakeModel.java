@@ -20,7 +20,7 @@ public class SnakeModel {
         public final Color color;
         public final Deque<Point> body = new ArrayDeque<>();
         public Direction direction;
-        private Direction nextDirection;
+        public Direction nextDirection;
         public boolean alive = true;
 
         public Snake(String name, Color color, Point start, Direction direction) {
