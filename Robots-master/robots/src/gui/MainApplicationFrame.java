@@ -24,6 +24,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import java.beans.PropertyVetoException;
 
 import log.Logger;
+import model.HunterSnakeModel;
 import model.RobotModel;
 import model.ThemeManager;
 import java.awt.Color;
@@ -295,7 +296,27 @@ public class MainApplicationFrame extends JFrame
         snakeItem.addActionListener(e -> openSnakeGame());
         gameMenu.add(snakeItem);
 
+        JMenuItem hunterItem = new JMenuItem("Охотник", KeyEvent.VK_H);
+        hunterItem.addActionListener(e -> openHunterGame());
+        gameMenu.add(hunterItem);
+
         return gameMenu;
+    }
+
+    private void openHunterGame() {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        int gameWidth = screenSize.width - 100;
+        int gameHeight = screenSize.height - 150;
+
+        HunterSnakeModel model = new HunterSnakeModel(gameWidth, gameHeight, "Hunter", new Color(0x4A90D9));
+        HunterGameWindow window = new HunterGameWindow(model);
+
+        window.setMaximizable(true);
+        window.setSize(gameWidth, gameHeight);
+        window.setLocation(50, 30);
+
+        addWindow(window);
     }
 
     private void openSnakeGame() {
