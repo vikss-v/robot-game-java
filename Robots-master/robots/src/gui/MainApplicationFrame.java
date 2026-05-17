@@ -29,6 +29,7 @@ import model.RobotModel;
 import model.ThemeManager;
 import java.awt.Color;
 import model.SnakeModel;
+import model.DefenseModel;
 
 public class MainApplicationFrame extends JFrame
 {
@@ -300,6 +301,10 @@ public class MainApplicationFrame extends JFrame
         hunterItem.addActionListener(e -> openHunterGame());
         gameMenu.add(hunterItem);
 
+        JMenuItem defenseItem = new JMenuItem("Защита яблока", KeyEvent.VK_Z);
+        defenseItem.addActionListener(e -> openDefenseGame());
+        gameMenu.add(defenseItem);
+
         return gameMenu;
     }
 
@@ -345,6 +350,19 @@ public class MainApplicationFrame extends JFrame
                 saveFrameState(snakeWindow);
             }
         });
+    }
+
+    private void openDefenseGame() {
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int w = screenSize.width  - 100;
+        int h = screenSize.height - 150;
+
+        DefenseModel model = new DefenseModel(w, h);
+        DefenseGameWindow window = new DefenseGameWindow(model);
+
+        window.setSize(w, h);
+        window.setLocation(50, 30);
+        addWindow(window);
     }
 
     private void saveFrameState(JInternalFrame frame) {
