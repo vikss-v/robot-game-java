@@ -43,6 +43,8 @@ public class GameVisualizer extends JPanel implements RobotModelListener
         this.themeManager = themeManager;
         this.model.addListener(this);
 
+        setBackground(new Color(255, 240, 245));
+
         m_timer.schedule(new TimerTask()
         {
             @Override

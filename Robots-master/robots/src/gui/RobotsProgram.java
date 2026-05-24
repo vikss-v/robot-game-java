@@ -7,9 +7,12 @@ import java.util.ResourceBundle;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import log.Logger;
+
 public class RobotsProgram
 {
     public static void main(String[] args) {
+        Logger.logFunction("RobotsProgram.main");
         try {
             Locale.setDefault(new Locale("ru", "RU"));
 
