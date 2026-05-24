@@ -29,6 +29,8 @@ import javax.swing.SwingUtilities;
 import model.SnakeModel;
 import model.SnakeModelListener;
 
+import log.Logger;
+
 public class SnakeGameWindow extends JInternalFrame implements SnakeModelListener {
 
     private static final int TICK_MS  = 350;
@@ -41,6 +43,7 @@ public class SnakeGameWindow extends JInternalFrame implements SnakeModelListene
 
     public SnakeGameWindow(SnakeModel model, Color bgColor) {
         super("Игровой режим", true, true, true, true);
+        Logger.logFunction("SnakeGameWindow constructor");
         this.model = model;
         this.bgColor = bgColor;
         model.addListener(this);
@@ -77,6 +80,7 @@ public class SnakeGameWindow extends JInternalFrame implements SnakeModelListene
     }
 
     private void bindKeys() {
+        Logger.logFunction("SnakeGameWindow.bindKeys");
         InputMap im = canvas.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = canvas.getActionMap();
 
@@ -99,6 +103,7 @@ public class SnakeGameWindow extends JInternalFrame implements SnakeModelListene
     }
 
     private void startGame() {
+        Logger.logFunction("SnakeGameWindow.startGame");
         model.startGame();
         startButton.setEnabled(false);
         startButton.setText("Игра идёт...");
@@ -113,6 +118,7 @@ public class SnakeGameWindow extends JInternalFrame implements SnakeModelListene
 
     @Override
     public void onSnakeModelChanged(SnakeModel m) {
+        Logger.logFunction("SnakeGameWindow.onSnakeModelChanged");
         SwingUtilities.invokeLater(() -> {
             canvas.repaint();
             if (m.getState() == SnakeModel.GameState.FINISHED) {
@@ -122,11 +128,13 @@ public class SnakeGameWindow extends JInternalFrame implements SnakeModelListene
     }
 
     private void stopTimer() {
+        Logger.logFunction("SnakeGameWindow.stopTimer");
         if (timer != null) { timer.cancel(); timer = null; }
     }
 
     @Override
     public void dispose() {
+        Logger.logFunction("SnakeGameWindow.dispose");
         stopTimer();
         model.removeListener(this);
         super.dispose();
@@ -136,6 +144,7 @@ public class SnakeGameWindow extends JInternalFrame implements SnakeModelListene
 
         @Override
         protected void paintComponent(Graphics g) {
+            Logger.logFunction("SnakeGameWindow.Canvas.paintComponent");
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

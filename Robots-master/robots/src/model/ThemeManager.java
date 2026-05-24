@@ -20,11 +20,13 @@ public class ThemeManager {
     private ThemeData.BackgroundTheme currentBackgroundTheme;
 
     public ThemeManager() {
+        Logger.logFunction("ThemeManager constructor");
         loadAllThemes();
         loadSavedThemes();
     }
 
     private void loadAllThemes() {
+        Logger.logFunction("ThemeManager.loadAllThemes");
         robotThemes = loadThemesFromClasspath("/themes/robots", "robot");
         targetThemes = loadThemesFromClasspath("/themes/targets", "target");
         backgroundThemes = loadThemesFromClasspath("/themes/backgrounds", "background");
@@ -39,6 +41,7 @@ public class ThemeManager {
     }
 
     private <T> List<T> loadThemesFromClasspath(String resourcePath, String type) {
+        Logger.logFunction("ThemeManager.loadThemesFromClasspath");
         List<T> themes = new ArrayList<>();
         try {
             URL resourceUrl = getClass().getResource(resourcePath);
@@ -66,6 +69,7 @@ public class ThemeManager {
 
     @SuppressWarnings("unchecked")
     private <T> T parseTheme(String json, String type) {
+        Logger.logFunction("ThemeManager.parseTheme");
         try {
             switch (type) {
                 case "robot":
@@ -133,6 +137,7 @@ public class ThemeManager {
     }
 
     private void loadSavedThemes() {
+        Logger.logFunction("ThemeManager.loadSavedThemes");
         File configFile = new File(CONFIG_FILE);
         if (!configFile.exists()) return;
 
@@ -160,6 +165,7 @@ public class ThemeManager {
     }
 
     public void saveCurrentThemes() {
+        Logger.logFunction("ThemeManager.saveCurrentThemes");
         try (PrintWriter writer = new PrintWriter(new FileWriter(CONFIG_FILE))) {
             writer.println(currentRobotTheme.name);
             writer.println(currentTargetTheme.name);
@@ -170,6 +176,7 @@ public class ThemeManager {
     }
 
     private ThemeData.RobotTheme createDefaultRobotTheme() {
+        Logger.logFunction("ThemeManager.createDefaultRobotTheme");
         ThemeData.RobotTheme t = new ThemeData.RobotTheme();
         t.name = "Стандартный робот"; t.bodyColor = "#FF00FF"; t.borderColor = "#000000";
         t.eyeColor = "#FFFFFF"; t.eyeBorderColor = "#000000"; t.bodyWidth = 30;
@@ -178,24 +185,26 @@ public class ThemeManager {
     }
 
     private ThemeData.TargetTheme createDefaultTargetTheme() {
+        Logger.logFunction("ThemeManager.createDefaultTargetTheme");
         ThemeData.TargetTheme t = new ThemeData.TargetTheme();
         t.name = "Красная точка"; t.color = "#FF3232"; t.size = 8; t.shape = "circle";
         return t;
     }
 
     private ThemeData.BackgroundTheme createDefaultBackgroundTheme() {
+        Logger.logFunction("ThemeManager.createDefaultBackgroundTheme");
         ThemeData.BackgroundTheme t = new ThemeData.BackgroundTheme();
         t.name = "Светлая"; t.backgroundColor = "#FFFFFF"; t.pathColor = "#6E64FF"; t.draftPathColor = "#6DFF3C";
         return t;
     }
 
-    public List<ThemeData.RobotTheme> getRobotThemes() { return robotThemes; }
-    public List<ThemeData.TargetTheme> getTargetThemes() { return targetThemes; }
-    public List<ThemeData.BackgroundTheme> getBackgroundThemes() { return backgroundThemes; }
-    public ThemeData.RobotTheme getCurrentRobotTheme() { return currentRobotTheme; }
-    public ThemeData.TargetTheme getCurrentTargetTheme() { return currentTargetTheme; }
-    public ThemeData.BackgroundTheme getCurrentBackgroundTheme() { return currentBackgroundTheme; }
-    public void setCurrentRobotTheme(ThemeData.RobotTheme theme) { this.currentRobotTheme = theme; }
-    public void setCurrentTargetTheme(ThemeData.TargetTheme theme) { this.currentTargetTheme = theme; }
-    public void setCurrentBackgroundTheme(ThemeData.BackgroundTheme theme) { this.currentBackgroundTheme = theme; }
+    public List<ThemeData.RobotTheme> getRobotThemes() { Logger.logFunction("ThemeManager.getRobotThemes"); return robotThemes; }
+    public List<ThemeData.TargetTheme> getTargetThemes() { Logger.logFunction("ThemeManager.getTargetThemes"); return targetThemes; }
+    public List<ThemeData.BackgroundTheme> getBackgroundThemes() { Logger.logFunction("ThemeManager.getBackgroundThemes"); return backgroundThemes; }
+    public ThemeData.RobotTheme getCurrentRobotTheme() { Logger.logFunction("ThemeManager.getCurrentRobotTheme"); return currentRobotTheme; }
+    public ThemeData.TargetTheme getCurrentTargetTheme() { Logger.logFunction("ThemeManager.getCurrentTargetTheme"); return currentTargetTheme; }
+    public ThemeData.BackgroundTheme getCurrentBackgroundTheme() { Logger.logFunction("ThemeManager.getCurrentBackgroundTheme"); return currentBackgroundTheme; }
+    public void setCurrentRobotTheme(ThemeData.RobotTheme theme) { Logger.logFunction("ThemeManager.setCurrentRobotTheme"); this.currentRobotTheme = theme; }
+    public void setCurrentTargetTheme(ThemeData.TargetTheme theme) { Logger.logFunction("ThemeManager.setCurrentTargetTheme"); this.currentTargetTheme = theme; }
+    public void setCurrentBackgroundTheme(ThemeData.BackgroundTheme theme) { Logger.logFunction("ThemeManager.setCurrentBackgroundTheme"); this.currentBackgroundTheme = theme; }
 }

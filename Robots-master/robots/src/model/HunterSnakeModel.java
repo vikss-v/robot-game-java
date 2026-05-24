@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import log.Logger;
+
 public class HunterSnakeModel {
 
     public enum GamePhase {
@@ -22,6 +24,7 @@ public class HunterSnakeModel {
         public boolean isAlive = true;
 
         public BotSnake(String name, Color color, Point start, SnakeModel.Direction dir) {
+            Logger.logFunction("BotSnake constructor");
             this.snake = new SnakeModel.Snake(name, color, start, dir);
             while (this.snake.body.size() > 3) {
                 this.snake.body.removeLast();
@@ -55,6 +58,7 @@ public class HunterSnakeModel {
     private final List<HunterModelListener> listeners = new CopyOnWriteArrayList<>();
 
     public HunterSnakeModel(int fieldWidthPx, int fieldHeightPx, String playerName, Color playerColor) {
+        Logger.logFunction("HunterSnakeModel constructor");
         this.fieldWidth = Math.max(15, fieldWidthPx / CELL_SIZE);
         this.fieldHeight = Math.max(15, fieldHeightPx / CELL_SIZE);
 
@@ -76,6 +80,7 @@ public class HunterSnakeModel {
     }
 
     private void createBotSnakes() {
+        Logger.logFunction("HunterSnakeModel.createBotSnakes");
         String[] botNames = {
                 "Красный", "Зелёный", "Синий", "Жёлтый",
                 "Фиолетовый", "Оранжевый", "Розовый", "Голубой"
@@ -147,19 +152,23 @@ public class HunterSnakeModel {
 
     public void addListener(HunterModelListener listener) {
         listeners.add(listener);
+        Logger.logFunction("HunterSnakeModel.addListener");
     }
 
     public void removeListener(HunterModelListener listener) {
         listeners.remove(listener);
+        Logger.logFunction("HunterSnakeModel.removeListener");
     }
 
     private void notifyListeners() {
+        Logger.logFunction("HunterSnakeModel.notifyListeners");
         for (HunterModelListener l : listeners) {
             l.onModelChanged(this);
         }
     }
 
     public void setPlayerDirection(SnakeModel.Direction dir) {
+        Logger.logFunction("HunterSnakeModel.setPlayerDirection");
         if (playerSnake != null && playerSnake.alive && !opposite(dir, playerSnake.direction)) {
             playerSnake.nextDirection = dir;
         }
@@ -173,6 +182,7 @@ public class HunterSnakeModel {
     }
 
     public void tick() {
+        Logger.logFunction("HunterSnakeModel.tick");
         long currentTime = System.currentTimeMillis();
 
         if (phase == GamePhase.GAME_OVER || phase == GamePhase.VICTORY) {
@@ -213,6 +223,7 @@ public class HunterSnakeModel {
     }
 
     private void movePlayer() {
+        Logger.logFunction("HunterSnakeModel.movePlayer");
         if (!playerSnake.alive) return;
 
         playerSnake.direction = playerSnake.nextDirection;
@@ -237,6 +248,7 @@ public class HunterSnakeModel {
     }
 
     private void moveBot(BotSnake bot) {
+        Logger.logFunction("HunterSnakeModel.moveBot");
         SnakeModel.Snake s = bot.snake;
         if (!s.alive) return;
 
@@ -270,6 +282,7 @@ public class HunterSnakeModel {
     }
 
     private SnakeModel.Direction getBestDirection(BotSnake bot) {
+        Logger.logFunction("HunterSnakeModel.getBestDirection");
         SnakeModel.Snake s = bot.snake;
         Point head = s.head();
 
@@ -418,6 +431,7 @@ public class HunterSnakeModel {
     }
 
     private void checkCollisions() {
+        Logger.logFunction("HunterSnakeModel.checkCollisions");
         if (playerSnake == null || !playerSnake.alive) return;
 
         Point playerHead = playerSnake.head();
@@ -472,6 +486,7 @@ public class HunterSnakeModel {
     }
 
     private void eatBot(BotSnake bot) {
+        Logger.logFunction("HunterSnakeModel.eatBot");
         score += 100;
         botsEaten++;
 
@@ -496,6 +511,7 @@ public class HunterSnakeModel {
     }
 
     private void updatePhase() {
+        Logger.logFunction("HunterSnakeModel.updatePhase");
         long elapsed = System.currentTimeMillis() - phaseStartTime;
 
         if (phase == GamePhase.HUNTING && elapsed >= HUNTING_DURATION_MS) {
@@ -506,6 +522,7 @@ public class HunterSnakeModel {
     }
 
     private void checkApple() {
+        Logger.logFunction("HunterSnakeModel.checkApple");
         if (!playerSnake.alive || apple == null) return;
         if (playerSnake.head().equals(apple)) {
             Point last = playerSnake.body.getLast();
@@ -516,6 +533,7 @@ public class HunterSnakeModel {
     }
 
     private void spawnApple() {
+        Logger.logFunction("HunterSnakeModel.spawnApple");
         Point candidate;
         int attempts = 0;
         do {
@@ -548,30 +566,33 @@ public class HunterSnakeModel {
         return elapsed >= ESCAPE_DURATION_MS;
     }
 
-    public SnakeModel.Snake getPlayerSnake() { return playerSnake; }
-    public List<BotSnake> getBotSnakes() { return new ArrayList<>(botSnakes); }
-    public int getScore() { return score; }
-    public int getBotsEaten() { return botsEaten; }
+    public SnakeModel.Snake getPlayerSnake() { Logger.logFunction("HunterSnakeModel.getPlayerSnake"); return playerSnake; }
+    public List<BotSnake> getBotSnakes() { Logger.logFunction("HunterSnakeModel.getBotSnakes"); return new ArrayList<>(botSnakes); }
+    public int getScore() { Logger.logFunction("HunterSnakeModel.getScore"); return score; }
+    public int getBotsEaten() { Logger.logFunction("HunterSnakeModel.getBotsEaten"); return botsEaten; }
     public int getAliveBotsCount() {
+        Logger.logFunction("HunterSnakeModel.getAliveBotsCount");
         int count = 0;
         for (BotSnake bot : botSnakes) {
             if (bot.isAlive && bot.snake.alive) count++;
         }
         return count;
     }
-    public GamePhase getPhase() { return phase; }
-    public Point getApple() { return apple; }
-    public int getFieldWidth() { return fieldWidth; }
-    public int getFieldHeight() { return fieldHeight; }
-    public static int getCellSize() { return CELL_SIZE; }
+    public GamePhase getPhase() { Logger.logFunction("HunterSnakeModel.getPhase"); return phase; }
+    public Point getApple() { Logger.logFunction("HunterSnakeModel.getApple"); return apple; }
+    public int getFieldWidth() { Logger.logFunction("HunterSnakeModel.getFieldWidth"); return fieldWidth; }
+    public int getFieldHeight() { Logger.logFunction("HunterSnakeModel.getFieldHeight"); return fieldHeight; }
+    public static int getCellSize() { Logger.logFunction("HunterSnakeModel.getCellSize"); return CELL_SIZE; }
 
     public long getRemainingHuntingTime() {
+        Logger.logFunction("HunterSnakeModel.getRemainingHuntingTime");
         if (phase != GamePhase.HUNTING) return 0;
         long elapsed = System.currentTimeMillis() - phaseStartTime;
         return Math.max(0, (HUNTING_DURATION_MS - elapsed) / 1000);
     }
 
     public long getRemainingEscapeTime() {
+        Logger.logFunction("HunterSnakeModel.getRemainingEscapeTime");
         if (phase != GamePhase.ESCAPE) return 0;
         long elapsed = System.currentTimeMillis() - phaseStartTime;
         return Math.max(0, (ESCAPE_DURATION_MS - elapsed) / 1000);

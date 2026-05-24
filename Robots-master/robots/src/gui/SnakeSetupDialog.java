@@ -15,6 +15,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import log.Logger;
 
 public class SnakeSetupDialog extends JDialog {
 
@@ -59,6 +60,7 @@ public class SnakeSetupDialog extends JDialog {
 
     public SnakeSetupDialog(JFrame parent) {
         super(parent, "Настройка игры", true);
+        Logger.logFunction("SnakeSetupDialog constructor");
 
         String[] colorNames = COLORS.keySet().toArray(new String[0]);
         color1Combo = new JComboBox<>(colorNames);
@@ -121,7 +123,13 @@ public class SnakeSetupDialog extends JDialog {
         gc.gridx = 1; p.add(field, gc);
     }
 
-    public Config getResult() { return result; }
+    public Config getResult() {
+        Logger.logFunction("SnakeSetupDialog.getResult");
+        return result;
+    }
 
-    public static Color[] getBgColors() { return BG_COLORS; }
+    public static Color[] getBgColors() {
+        Logger.logFunction("SnakeSetupDialog.getBgColors");
+        return BG_COLORS;
+    }
 }
