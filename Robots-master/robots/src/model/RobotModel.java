@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import log.Logger;
+
 public class RobotModel {
     private double x = 100;
     private double y = 100;
@@ -17,26 +19,34 @@ public class RobotModel {
     private static final double MAX_ANGULAR_VELOCITY = 15.0;
     private static final double WAYPOINT_REACH_DISTANCE = 5.0;
 
+    public RobotModel() {
+        Logger.logFunction("RobotModel constructor");
+    }
+
     public void addListener(RobotModelListener listener) {
         listeners.add(listener);
+        Logger.logFunction("RobotModel.addListener");
     }
 
     public void removeListener(RobotModelListener listener) {
         listeners.remove(listener);
+        Logger.logFunction("RobotModel.removeListener");
     }
 
     private void notifyListeners() {
+        Logger.logFunction("RobotModel.notifyListeners");
         for (RobotModelListener listener : listeners) {
             listener.onModelChanged(this);
         }
     }
 
-    public double getX() { return x; }
-    public double getY() { return y; }
-    public double getDirection() { return direction; }
+    public double getX() { Logger.logFunction("RobotModel.getX"); return x; }
+    public double getY() { Logger.logFunction("RobotModel.getY"); return y; }
+    public double getDirection() { Logger.logFunction("RobotModel.getDirection"); return direction; }
 
     public void setPath(List<double[]> newPath)
     {
+        Logger.logFunction("RobotModel.setPath");
         synchronized (path) {
             path.clear();
             path.addAll(newPath);
@@ -47,12 +57,14 @@ public class RobotModel {
 
     public List<double[]> getPath()
     {
+        Logger.logFunction("RobotModel.getPath");
         synchronized (path) {
             return new ArrayList<>(path);
         }
     }
 
     public double[] getCurrentTarget() {
+        Logger.logFunction("RobotModel.getCurrentTarget");
         synchronized (path) {
             if (path.isEmpty() || currentPathIndex >= path.size()) {
                 return null;
@@ -62,6 +74,7 @@ public class RobotModel {
     }
 
     public void updateModel(int durationMs) {
+        Logger.logFunction("RobotModel.updateModel");
         double[] target = getCurrentTarget();
         if (target == null) {
             notifyListeners();
@@ -99,6 +112,7 @@ public class RobotModel {
 
     private void moveRobot(double velocity, double angularVelocity, double duration)
     {
+        Logger.logFunction("RobotModel.moveRobot");
         velocity = applyLimits(velocity, 0, MAX_VELOCITY);
         angularVelocity = applyLimits(angularVelocity, -MAX_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
 

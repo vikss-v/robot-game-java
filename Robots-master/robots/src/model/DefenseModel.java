@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import log.Logger;
+
 public class DefenseModel {
 
     public enum GamePhase {
@@ -31,6 +33,7 @@ public class DefenseModel {
             this.x = x;
             this.y = y;
             this.color = color;
+            Logger.logFunction("Robot constructor");
         }
     }
 
@@ -47,6 +50,7 @@ public class DefenseModel {
             this.y = y;
             this.color = color;
             this.speed = speed;
+            Logger.logFunction("Worm constructor");
         }
     }
 
@@ -79,6 +83,7 @@ public class DefenseModel {
     private final List<DefenseModelListener> listeners = new CopyOnWriteArrayList<>();
 
     public DefenseModel(int fieldWidth, int fieldHeight) {
+        Logger.logFunction("DefenseModel constructor");
         this.fieldWidth  = fieldWidth;
         this.fieldHeight = fieldHeight;
 
@@ -88,30 +93,35 @@ public class DefenseModel {
         robot2 = new Robot(apple.x + 80, apple.y, new Color(0xFF6B35));
     }
 
-    public void addListener(DefenseModelListener l)    { listeners.add(l); }
-    public void removeListener(DefenseModelListener l) { listeners.remove(l); }
+    public void addListener(DefenseModelListener l)    { listeners.add(l); Logger.logFunction("DefenseModel.addListener"); }
+    public void removeListener(DefenseModelListener l) { listeners.remove(l); Logger.logFunction("DefenseModel.removeListener"); }
 
     private void notifyListeners() {
+        Logger.logFunction("DefenseModel.notifyListeners");
         for (DefenseModelListener l : listeners) l.onModelChanged(this);
     }
 
     public void setRobot1Direction(double vx, double vy) {
+        Logger.logFunction("DefenseModel.setRobot1Direction");
         robot1.vx = vx;
         robot1.vy = vy;
     }
 
     public void setRobot2Direction(double vx, double vy) {
+        Logger.logFunction("DefenseModel.setRobot2Direction");
         robot2.vx = vx;
         robot2.vy = vy;
     }
 
     public void startGame() {
+        Logger.logFunction("DefenseModel.startGame");
         if (phase != GamePhase.WAITING) return;
         currentWave = 0;
         startNextWave();
     }
 
     private void startNextWave() {
+        Logger.logFunction("DefenseModel.startNextWave");
         wormsSpawnedThisWave = 0;
         lastSpawnTime = System.currentTimeMillis();
         worms.clear();
@@ -120,6 +130,7 @@ public class DefenseModel {
     }
 
     public void tick(double dtSeconds) {
+        Logger.logFunction("DefenseModel.tick");
         if (phase == GamePhase.WAITING || phase == GamePhase.VICTORY || phase == GamePhase.DEFEAT) {
             return;
         }
@@ -142,6 +153,7 @@ public class DefenseModel {
     }
 
     private void spawnWorms() {
+        Logger.logFunction("DefenseModel.spawnWorms");
         int total = WORMS_PER_WAVE[currentWave];
         if (wormsSpawnedThisWave >= total) return;
 
@@ -169,11 +181,13 @@ public class DefenseModel {
     }
 
     private void moveRobots(double dt) {
+        Logger.logFunction("DefenseModel.moveRobots");
         moveRobot(robot1, dt);
         moveRobot(robot2, dt);
     }
 
     private void moveRobot(Robot r, double dt) {
+        Logger.logFunction("DefenseModel.moveRobot");
         double nx = r.x + r.vx * r.speed * dt;
         double ny = r.y + r.vy * r.speed * dt;
 
@@ -189,6 +203,7 @@ public class DefenseModel {
     }
 
     private void moveWorms(double dt) {
+        Logger.logFunction("DefenseModel.moveWorms");
         for (Worm w : worms) {
             if (!w.alive) continue;
 
@@ -203,6 +218,7 @@ public class DefenseModel {
     }
 
     private void checkCollisions() {
+        Logger.logFunction("DefenseModel.checkCollisions");
         for (Worm w : worms) {
             if (!w.alive) continue;
 
@@ -228,6 +244,7 @@ public class DefenseModel {
     }
 
     private void checkWaveComplete() {
+        Logger.logFunction("DefenseModel.checkWaveComplete");
         int total = WORMS_PER_WAVE[currentWave];
         if (wormsSpawnedThisWave < total) return;
 
@@ -246,17 +263,18 @@ public class DefenseModel {
         }
     }
 
-    public Robot getRobot1()     { return robot1; }
-    public Robot getRobot2()     { return robot2; }
-    public Point getApple()      { return apple; }
-    public int getAppleHp()      { return appleHp; }
-    public List<Worm> getWorms() { return worms; }
-    public int getCurrentWave()  { return currentWave; }
-    public GamePhase getPhase()  { return phase; }
-    public int getFieldWidth()   { return fieldWidth; }
-    public int getFieldHeight()  { return fieldHeight; }
+    public Robot getRobot1()     { Logger.logFunction("DefenseModel.getRobot1"); return robot1; }
+    public Robot getRobot2()     { Logger.logFunction("DefenseModel.getRobot2"); return robot2; }
+    public Point getApple()      { Logger.logFunction("DefenseModel.getApple"); return apple; }
+    public int getAppleHp()      { Logger.logFunction("DefenseModel.getAppleHp"); return appleHp; }
+    public List<Worm> getWorms() { Logger.logFunction("DefenseModel.getWorms"); return worms; }
+    public int getCurrentWave()  { Logger.logFunction("DefenseModel.getCurrentWave"); return currentWave; }
+    public GamePhase getPhase()  { Logger.logFunction("DefenseModel.getPhase"); return phase; }
+    public int getFieldWidth()   { Logger.logFunction("DefenseModel.getFieldWidth"); return fieldWidth; }
+    public int getFieldHeight()  { Logger.logFunction("DefenseModel.getFieldHeight"); return fieldHeight; }
 
     public long getRemainingPauseMs() {
+        Logger.logFunction("DefenseModel.getRemainingPauseMs");
         if (phase != GamePhase.BETWEEN_WAVES) return 0;
         return Math.max(0, waveEndTime - System.currentTimeMillis());
     }

@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import log.Logger;
+
 public class SnakeModel {
 
     public enum Direction { UP, DOWN, LEFT, RIGHT }
@@ -24,6 +26,7 @@ public class SnakeModel {
         public boolean alive = true;
 
         public Snake(String name, Color color, Point start, Direction direction) {
+            Logger.logFunction("Snake constructor");
             this.name = name;
             this.color = color;
             this.direction = direction;
@@ -54,6 +57,7 @@ public class SnakeModel {
     private static final int CELL = 20;
 
     public void setFieldSize(int widthPx, int heightPx) {
+        Logger.logFunction("SnakeModel.setFieldSize");
         this.fieldWidth  = Math.max(1, widthPx  / CELL);
         this.fieldHeight = Math.max(1, heightPx / CELL);
     }
@@ -72,6 +76,7 @@ public class SnakeModel {
     public SnakeModel(int fieldWidth, int fieldHeight,
                       String name1, Color color1,
                       String name2, Color color2) {
+        Logger.logFunction("SnakeModel constructor");
         this.fieldWidth = fieldWidth / CELL;
         this.fieldHeight = fieldHeight / CELL;
 
@@ -87,22 +92,24 @@ public class SnakeModel {
 
     public static int getCellSize() { return CELL; }
 
-    public void addListener(SnakeModelListener l) { listeners.add(l); }
-    public void removeListener(SnakeModelListener l) { listeners.remove(l); }
+    public void addListener(SnakeModelListener l) { listeners.add(l); Logger.logFunction("SnakeModel.addListener"); }
+    public void removeListener(SnakeModelListener l) { listeners.remove(l); Logger.logFunction("SnakeModel.removeListener"); }
 
     private void notify_() {
+        Logger.logFunction("SnakeModel.notify_");
         for (SnakeModelListener l : listeners) l.onSnakeModelChanged(this);
     }
 
-    public Snake getSnake1() { return snake1; }
-    public Snake getSnake2() { return snake2; }
-    public Point getApple() { return apple; }
-    public GameState getState() { return state; }
-    public String getWinner() { return winner; }
-    public int getFieldWidth() { return fieldWidth; }
-    public int getFieldHeight() { return fieldHeight; }
+    public Snake getSnake1() { Logger.logFunction("SnakeModel.getSnake1"); return snake1; }
+    public Snake getSnake2() { Logger.logFunction("SnakeModel.getSnake2"); return snake2; }
+    public Point getApple() { Logger.logFunction("SnakeModel.getApple"); return apple; }
+    public GameState getState() { Logger.logFunction("SnakeModel.getState"); return state; }
+    public String getWinner() { Logger.logFunction("SnakeModel.getWinner"); return winner; }
+    public int getFieldWidth() { Logger.logFunction("SnakeModel.getFieldWidth"); return fieldWidth; }
+    public int getFieldHeight() { Logger.logFunction("SnakeModel.getFieldHeight"); return fieldHeight; }
 
     public void startGame() {
+        Logger.logFunction("SnakeModel.startGame");
         if (state == GameState.WAITING) {
             state = GameState.RUNNING;
             notify_();
@@ -110,10 +117,12 @@ public class SnakeModel {
     }
 
     public void setDirection1(Direction d) {
+        Logger.logFunction("SnakeModel.setDirection1");
         if (!opposite(d, snake1.direction)) snake1.nextDirection = d;
     }
 
     public void setDirection2(Direction d) {
+        Logger.logFunction("SnakeModel.setDirection2");
         if (!opposite(d, snake2.direction)) snake2.nextDirection = d;
     }
 
@@ -125,6 +134,7 @@ public class SnakeModel {
     }
 
     public void tick() {
+        Logger.logFunction("SnakeModel.tick");
         if (state != GameState.RUNNING) return;
 
         moveSnake(snake1);
@@ -141,6 +151,7 @@ public class SnakeModel {
     }
 
     private void moveSnake(Snake snake) {
+        Logger.logFunction("SnakeModel.moveSnake");
         if (!snake.alive) return;
         snake.direction = snake.nextDirection;
         Point head = snake.head();
@@ -159,6 +170,7 @@ public class SnakeModel {
     }
 
     private void checkCollisions() {
+        Logger.logFunction("SnakeModel.checkCollisions");
         checkWallAndSelf(snake1, snake2);
         checkWallAndSelf(snake2, snake1);
 
@@ -175,6 +187,7 @@ public class SnakeModel {
     }
 
     private void checkWallAndSelf(Snake snake, Snake other) {
+        Logger.logFunction("SnakeModel.checkWallAndSelf");
         if (!snake.alive) return;
         Point head = snake.head();
 
@@ -194,6 +207,7 @@ public class SnakeModel {
     }
 
     private void checkApple(Snake snake) {
+        Logger.logFunction("SnakeModel.checkApple");
         if (!snake.alive || apple == null) return;
         if (snake.head().equals(apple)) {
             snake.body.addLast(snake.body.peekLast());
@@ -202,6 +216,7 @@ public class SnakeModel {
     }
 
     private void spawnApple() {
+        Logger.logFunction("SnakeModel.spawnApple");
         Point candidate;
         do {
             candidate = new Point(random.nextInt(fieldWidth), random.nextInt(fieldHeight));
