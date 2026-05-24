@@ -1,5 +1,6 @@
 package gui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -10,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
@@ -21,19 +21,19 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.beans.PropertyVetoException;
 
 import log.Logger;
 import model.HunterSnakeModel;
 import model.RobotModel;
 import model.ThemeManager;
-import java.awt.Color;
 import model.SnakeModel;
 import model.DefenseModel;
 
 public class MainApplicationFrame extends JFrame
 {
-    private final JDesktopPane desktopPane = new JDesktopPane();
+    private final ImageDesktopPane desktopPane;
     private final ThemeManager themeManager = new ThemeManager();
 
     private static final String CONFIG_DIR = System.getProperty("user.home");
@@ -42,6 +42,13 @@ public class MainApplicationFrame extends JFrame
     private final RobotModel robotModel = new RobotModel();
 
     public MainApplicationFrame() {
+        Logger.logFunction("MainApplicationFrame constructor");
+
+        setupLookAndFeel();
+
+        desktopPane = new ImageDesktopPane("/images/background.jpg");
+        desktopPane.setBackground(new Color(255, 240, 245));
+
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setBounds(inset, inset,
@@ -65,6 +72,22 @@ public class MainApplicationFrame extends JFrame
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+    }
+
+    private void setupLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(new NimbusLookAndFeel());
+
+            UIManager.put("nimbusBase", new Color(255, 200, 220));
+            UIManager.put("nimbusBlueGrey", new Color(255, 220, 235));
+            UIManager.put("control", new Color(255, 240, 245));
+            UIManager.put("text", new Color(50, 30, 40));
+            UIManager.put("nimbusLightBackground", new Color(255, 245, 250));
+            UIManager.put("info", new Color(255, 220, 235));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     protected LogWindow createLogWindow()
@@ -202,6 +225,9 @@ public class MainApplicationFrame extends JFrame
         menuBar.add(createTestMenu());
         menuBar.add(createGameMenu());
 
+        menuBar.setBackground(new Color(255, 220, 235));
+        menuBar.setOpaque(true);
+
         return menuBar;
     }
 
@@ -209,12 +235,15 @@ public class MainApplicationFrame extends JFrame
     {
         JMenu fileMenu = new JMenu("Файл");
         fileMenu.setMnemonic(KeyEvent.VK_F);
+        fileMenu.setForeground(new Color(180, 80, 120));
 
         JMenuItem exitMenuItem = new JMenuItem("Выход", KeyEvent.VK_X);
         exitMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_MASK));
         exitMenuItem.addActionListener((event) -> {
             exitApplication();
         });
+        exitMenuItem.setBackground(new Color(255, 240, 245));
+        exitMenuItem.setForeground(new Color(180, 80, 120));
         fileMenu.add(exitMenuItem);
 
         return fileMenu;
@@ -224,6 +253,7 @@ public class MainApplicationFrame extends JFrame
     {
         JMenu lookAndFeelMenu = new JMenu("Режим отображения");
         lookAndFeelMenu.setMnemonic(KeyEvent.VK_V);
+        lookAndFeelMenu.setForeground(new Color(180, 80, 120));
         lookAndFeelMenu.getAccessibleContext().setAccessibleDescription(
                 "Управление режимом отображения приложения");
 
@@ -232,6 +262,8 @@ public class MainApplicationFrame extends JFrame
             setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             this.invalidate();
         });
+        systemLookAndFeel.setBackground(new Color(255, 240, 245));
+        systemLookAndFeel.setForeground(new Color(180, 80, 120));
         lookAndFeelMenu.add(systemLookAndFeel);
 
         JMenuItem crossplatformLookAndFeel = new JMenuItem("Универсальная схема", KeyEvent.VK_S);
@@ -239,6 +271,8 @@ public class MainApplicationFrame extends JFrame
             setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             this.invalidate();
         });
+        crossplatformLookAndFeel.setBackground(new Color(255, 240, 245));
+        crossplatformLookAndFeel.setForeground(new Color(180, 80, 120));
         lookAndFeelMenu.add(crossplatformLookAndFeel);
 
         return lookAndFeelMenu;
@@ -248,6 +282,7 @@ public class MainApplicationFrame extends JFrame
     {
         JMenu testMenu = new JMenu("Тесты");
         testMenu.setMnemonic(KeyEvent.VK_T);
+        testMenu.setForeground(new Color(180, 80, 120));
         testMenu.getAccessibleContext().setAccessibleDescription(
                 "Тестовые команды");
 
@@ -255,6 +290,8 @@ public class MainApplicationFrame extends JFrame
         addLogMessageItem.addActionListener((event) -> {
             Logger.debug("Новая строка");
         });
+        addLogMessageItem.setBackground(new Color(255, 240, 245));
+        addLogMessageItem.setForeground(new Color(180, 80, 120));
         testMenu.add(addLogMessageItem);
 
         return testMenu;
@@ -292,17 +329,24 @@ public class MainApplicationFrame extends JFrame
     private JMenu createGameMenu() {
         JMenu gameMenu = new JMenu("Игра");
         gameMenu.setMnemonic(KeyEvent.VK_G);
+        gameMenu.setForeground(new Color(180, 80, 120));
 
         JMenuItem snakeItem = new JMenuItem("Битва червяков", KeyEvent.VK_C);
         snakeItem.addActionListener(e -> openSnakeGame());
+        snakeItem.setBackground(new Color(255, 240, 245));
+        snakeItem.setForeground(new Color(180, 80, 120));
         gameMenu.add(snakeItem);
 
         JMenuItem hunterItem = new JMenuItem("Охотник", KeyEvent.VK_H);
         hunterItem.addActionListener(e -> openHunterGame());
+        hunterItem.setBackground(new Color(255, 240, 245));
+        hunterItem.setForeground(new Color(180, 80, 120));
         gameMenu.add(hunterItem);
 
         JMenuItem defenseItem = new JMenuItem("Защита яблока", KeyEvent.VK_Z);
         defenseItem.addActionListener(e -> openDefenseGame());
+        defenseItem.setBackground(new Color(255, 240, 245));
+        defenseItem.setForeground(new Color(180, 80, 120));
         gameMenu.add(defenseItem);
 
         return gameMenu;
@@ -314,7 +358,7 @@ public class MainApplicationFrame extends JFrame
         int gameWidth = screenSize.width - 100;
         int gameHeight = screenSize.height - 150;
 
-        HunterSnakeModel model = new HunterSnakeModel(gameWidth, gameHeight, "Hunter", new Color(0x4A90D9));
+        HunterSnakeModel model = new HunterSnakeModel(gameWidth, gameHeight, "Hunter", new Color(0xFFB6C1));
         HunterGameWindow window = new HunterGameWindow(model);
 
         window.setMaximizable(true);
@@ -329,12 +373,7 @@ public class MainApplicationFrame extends JFrame
         SnakeSetupDialog.Config config = dialog.getResult();
         if (config == null) return;
 
-        Color bgColor = SnakeSetupDialog.getBgColors()[
-                java.util.Arrays.asList(
-                        new String[]{"Светлая", "Тёмная", "Аврора", "Закат"}
-                ).indexOf(config.backgroundKey)
-                ];
-        if (bgColor == null) bgColor = Color.WHITE;
+        Color bgColor = new Color(255, 240, 245);
 
         SnakeModel snakeModel = new SnakeModel(600, 500,
                 config.name1, config.color1,

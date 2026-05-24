@@ -28,6 +28,8 @@ import javax.swing.SwingUtilities;
 import model.DefenseModel;
 import model.DefenseModelListener;
 
+import log.Logger;
+
 public class DefenseGameWindow extends JInternalFrame implements DefenseModelListener {
 
     private static final int TICK_MS = 30;
@@ -42,6 +44,7 @@ public class DefenseGameWindow extends JInternalFrame implements DefenseModelLis
 
     public DefenseGameWindow(DefenseModel model) {
         super("Защита яблока — кооперативная игра", true, true, true, true);
+        Logger.logFunction("DefenseGameWindow constructor");
         this.model = model;
         model.addListener(this);
 
@@ -63,6 +66,7 @@ public class DefenseGameWindow extends JInternalFrame implements DefenseModelLis
     }
 
     private JPanel createButtonPanel() {
+        Logger.logFunction("DefenseGameWindow.createButtonPanel");
         JPanel panel = new JPanel();
         panel.setBackground(new Color(20, 20, 30));
 
@@ -96,6 +100,7 @@ public class DefenseGameWindow extends JInternalFrame implements DefenseModelLis
     }
 
     private void restartGame() {
+        Logger.logFunction("DefenseGameWindow.restartGame");
         stopTimer();
         model.removeListener(this);
 
@@ -110,6 +115,7 @@ public class DefenseGameWindow extends JInternalFrame implements DefenseModelLis
     }
 
     private void startTimer() {
+        Logger.logFunction("DefenseGameWindow.startTimer");
         timer = new Timer("defense-tick", true);
         long[] lastTick = {System.currentTimeMillis()};
 
@@ -126,10 +132,12 @@ public class DefenseGameWindow extends JInternalFrame implements DefenseModelLis
     }
 
     private void stopTimer() {
+        Logger.logFunction("DefenseGameWindow.stopTimer");
         if (timer != null) { timer.cancel(); timer = null; }
     }
 
     private void updateDirectionsFromKeys() {
+        Logger.logFunction("DefenseGameWindow.updateDirectionsFromKeys");
         double vx1 = 0, vy1 = 0;
         if (pressedKeys.contains(KeyEvent.VK_W)) vy1 -= 1;
         if (pressedKeys.contains(KeyEvent.VK_S)) vy1 += 1;
@@ -150,6 +158,7 @@ public class DefenseGameWindow extends JInternalFrame implements DefenseModelLis
     }
 
     private void bindKeys() {
+        Logger.logFunction("DefenseGameWindow.bindKeys");
         InputMap im = canvas.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = canvas.getActionMap();
 
@@ -188,6 +197,7 @@ public class DefenseGameWindow extends JInternalFrame implements DefenseModelLis
 
     @Override
     public void onModelChanged(DefenseModel m) {
+        Logger.logFunction("DefenseGameWindow.onModelChanged");
         SwingUtilities.invokeLater(() -> {
             canvas.repaint();
             DefenseModel.GamePhase phase = m.getPhase();
@@ -199,6 +209,7 @@ public class DefenseGameWindow extends JInternalFrame implements DefenseModelLis
 
     @Override
     public void dispose() {
+        Logger.logFunction("DefenseGameWindow.dispose");
         stopTimer();
         model.removeListener(this);
         super.dispose();
@@ -208,6 +219,7 @@ public class DefenseGameWindow extends JInternalFrame implements DefenseModelLis
 
         @Override
         protected void paintComponent(Graphics g) {
+            Logger.logFunction("DefenseGameWindow.Canvas.paintComponent");
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

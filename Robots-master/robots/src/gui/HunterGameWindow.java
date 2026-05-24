@@ -29,6 +29,8 @@ import model.HunterSnakeModel;
 import model.HunterModelListener;
 import model.SnakeModel;
 
+import log.Logger;
+
 public class HunterGameWindow extends JInternalFrame implements HunterModelListener {
 
     private static final int TICK_MS = 150;
@@ -46,6 +48,7 @@ public class HunterGameWindow extends JInternalFrame implements HunterModelListe
 
     public HunterGameWindow(HunterSnakeModel model) {
         super("Охотник - Съешь змей и убеги!", true, true, true, true);
+        Logger.logFunction("HunterGameWindow constructor");
         this.model = model;
         this.playerName = model.getPlayerSnake().name;
         this.playerColor = model.getPlayerSnake().color;
@@ -73,6 +76,7 @@ public class HunterGameWindow extends JInternalFrame implements HunterModelListe
     }
 
     private JPanel createButtonPanel() {
+        Logger.logFunction("HunterGameWindow.createButtonPanel");
         JPanel panel = new JPanel();
         panel.setBackground(new Color(50, 50, 60));
 
@@ -97,6 +101,7 @@ public class HunterGameWindow extends JInternalFrame implements HunterModelListe
     }
 
     private void restartGame() {
+        Logger.logFunction("HunterGameWindow.restartGame");
         if (timer != null) {
             timer.cancel();
             timer = null;
@@ -117,6 +122,7 @@ public class HunterGameWindow extends JInternalFrame implements HunterModelListe
     }
 
     private void bindKeys() {
+        Logger.logFunction("HunterGameWindow.bindKeys");
         InputMap im = canvas.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = canvas.getActionMap();
 
@@ -143,6 +149,7 @@ public class HunterGameWindow extends JInternalFrame implements HunterModelListe
     }
 
     private void startTimer() {
+        Logger.logFunction("HunterGameWindow.startTimer");
         timer = new Timer("hunter-tick", true);
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -154,6 +161,7 @@ public class HunterGameWindow extends JInternalFrame implements HunterModelListe
 
     @Override
     public void onModelChanged(HunterSnakeModel m) {
+        Logger.logFunction("HunterGameWindow.onModelChanged");
         SwingUtilities.invokeLater(() -> {
             canvas.repaint();
 
@@ -170,6 +178,7 @@ public class HunterGameWindow extends JInternalFrame implements HunterModelListe
 
     @Override
     public void dispose() {
+        Logger.logFunction("HunterGameWindow.dispose");
         if (timer != null) {
             timer.cancel();
             timer = null;
@@ -182,6 +191,7 @@ public class HunterGameWindow extends JInternalFrame implements HunterModelListe
 
         @Override
         protected void paintComponent(Graphics g) {
+            Logger.logFunction("HunterGameWindow.Canvas.paintComponent");
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

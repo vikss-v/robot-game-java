@@ -1,7 +1,9 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.text.DecimalFormat;
 
 import javax.swing.JInternalFrame;
@@ -10,6 +12,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 
 import model.RobotModel;
 import model.RobotModelListener;
@@ -25,39 +28,74 @@ public class RobotCoordinatesWindow extends JInternalFrame implements RobotModel
 
     public RobotCoordinatesWindow(RobotModel model) {
         super("Координаты робота", true, true, true, true);
+        getContentPane().setBackground(new Color(255, 240, 245));
 
         model.addListener(this);
 
         JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(255, 240, 245));
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JPanel infoPanel = new JPanel(new java.awt.GridLayout(5, 2, 5, 10));
-        infoPanel.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        JPanel infoPanel = new JPanel(new GridLayout(5, 2, 5, 10));
+        infoPanel.setBackground(new Color(255, 240, 245));
+        infoPanel.setBorder(new TitledBorder(BorderFactory.createLineBorder(new Color(255, 200, 215)),
+                "Параметры робота", TitledBorder.LEFT, TitledBorder.TOP,
+                new Font("Segoe UI", Font.BOLD, 12), new Color(180, 80, 120)));
 
-        infoPanel.add(new JLabel("Позиция X:", SwingConstants.RIGHT));
+        JLabel xTitle = new JLabel("Позиция X:", SwingConstants.RIGHT);
+        xTitle.setForeground(new Color(180, 80, 120));
+        xTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        infoPanel.add(xTitle);
+
         xLabel = new JLabel("0.00");
+        xLabel.setForeground(new Color(150, 60, 100));
+        xLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         infoPanel.add(xLabel);
 
-        infoPanel.add(new JLabel("Позиция Y:", SwingConstants.RIGHT));
+        JLabel yTitle = new JLabel("Позиция Y:", SwingConstants.RIGHT);
+        yTitle.setForeground(new Color(180, 80, 120));
+        yTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        infoPanel.add(yTitle);
+
         yLabel = new JLabel("0.00");
+        yLabel.setForeground(new Color(150, 60, 100));
+        yLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         infoPanel.add(yLabel);
 
-        infoPanel.add(new JLabel("Направление (градусы):", SwingConstants.RIGHT));
+        JLabel dirTitle = new JLabel("Направление (градусы):", SwingConstants.RIGHT);
+        dirTitle.setForeground(new Color(180, 80, 120));
+        dirTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        infoPanel.add(dirTitle);
+
         directionLabel = new JLabel("0.00");
+        directionLabel.setForeground(new Color(150, 60, 100));
+        directionLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         infoPanel.add(directionLabel);
 
-        infoPanel.add(new JLabel("Цель X:", SwingConstants.RIGHT));
+        JLabel targetXTitle = new JLabel("Цель X:", SwingConstants.RIGHT);
+        targetXTitle.setForeground(new Color(180, 80, 120));
+        targetXTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        infoPanel.add(targetXTitle);
+
         targetXLabel = new JLabel("-");
+        targetXLabel.setForeground(new Color(150, 60, 100));
+        targetXLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         infoPanel.add(targetXLabel);
 
-        infoPanel.add(new JLabel("Цель Y:", SwingConstants.RIGHT));
+        JLabel targetYTitle = new JLabel("Цель Y:", SwingConstants.RIGHT);
+        targetYTitle.setForeground(new Color(180, 80, 120));
+        targetYTitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        infoPanel.add(targetYTitle);
+
         targetYLabel = new JLabel("-");
+        targetYLabel.setForeground(new Color(150, 60, 100));
+        targetYLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         infoPanel.add(targetYLabel);
 
         panel.add(infoPanel, BorderLayout.CENTER);
 
         getContentPane().add(panel);
-        setSize(250, 180);
+        setSize(250, 220);
         setLocation(320, 10);
 
         updateCoordinates(model);
@@ -84,5 +122,11 @@ public class RobotCoordinatesWindow extends JInternalFrame implements RobotModel
     @Override
     public void onModelChanged(RobotModel model) {
         updateCoordinates(model);
+    }
+
+    private static class BorderFactory {
+        public static javax.swing.border.Border createLineBorder(Color color) {
+            return javax.swing.BorderFactory.createLineBorder(color);
+        }
     }
 }
