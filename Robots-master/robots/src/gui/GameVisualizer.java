@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import model.ObstacleMap;
 
 import javax.swing.JPanel;
 
@@ -100,6 +101,17 @@ public class GameVisualizer extends JPanel implements RobotModelListener
         setDoubleBuffered(true);
 
         applyTheme();
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                if (model.getObstacleMap() == null && getWidth() > 0 && getHeight() > 0) {
+                    ObstacleMap map = new ObstacleMap(getWidth(), getHeight());
+                    model.setObstacleMap(map);
+                    repaint();
+                }
+            }
+        });
     }
 
     public void setDrawingMode(boolean enabled) {
@@ -147,6 +159,7 @@ public class GameVisualizer extends JPanel implements RobotModelListener
         super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        drawObstacles(g2d);
 
         ThemeData.BackgroundTheme bgTheme = themeManager.getCurrentBackgroundTheme();
 
@@ -246,5 +259,36 @@ public class GameVisualizer extends JPanel implements RobotModelListener
         drawOval(g, robotCenterX + robotTheme.eyeOffsetX, robotCenterY, robotTheme.eyeSize, robotTheme.eyeSize);
 
         g.setTransform(new AffineTransform());
+    }
+
+    private void drawObstacles(Graphics2D g) {
+        ObstacleMap obstacleMap = model.getObstacleMap();
+        if (obstacleMap == null) return;
+
+        g.setTransform(new AffineTransform());
+
+        int cellSize = obstacleMap.getCellSize();
+        int cols     = obstacleMap.getCols();
+        int rows     = obstacleMap.getRows();
+
+        ThemeData.BackgroundTheme bgTheme = themeManager.getCurrentBackgroundTheme();
+        Color obstacleColor = bgTheme.getBackgroundColor().darker().darker();
+        Color borderColor   = obstacleColor.darker();
+
+        for (int c = 0; c < cols; c++) {
+            for (int r = 0; r < rows; r++) {
+                if (!obstacleMap.isObstacle(c, r)) continue;
+
+                int px = c * cellSize;
+                int py = r * cellSize;
+
+                g.setColor(obstacleColor);
+                g.fillRoundRect(px + 1, py + 1, cellSize - 2, cellSize - 2, 4, 4);
+
+                g.setColor(borderColor);
+                g.setStroke(new BasicStroke(1f));
+                g.drawRoundRect(px + 1, py + 1, cellSize - 2, cellSize - 2, 4, 4);
+            }
+        }
     }
 }

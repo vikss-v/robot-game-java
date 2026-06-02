@@ -10,6 +10,7 @@ public class RobotModel {
     private double x = 100;
     private double y = 100;
     private double direction = 0;
+    private ObstacleMap obstacleMap;
 
     private final List<double[]> path = new ArrayList<>();
     private int currentPathIndex = 0;
@@ -39,19 +40,38 @@ public class RobotModel {
             listener.onModelChanged(this);
         }
     }
+    public void setObstacleMap(ObstacleMap obstacleMap) {
+        this.obstacleMap = obstacleMap;
+    }
+
+    public ObstacleMap getObstacleMap() {
+        return obstacleMap;
+    }
 
     public double getX() { Logger.logFunction("RobotModel.getX"); return x; }
     public double getY() { Logger.logFunction("RobotModel.getY"); return y; }
     public double getDirection() { Logger.logFunction("RobotModel.getDirection"); return direction; }
 
-    public void setPath(List<double[]> newPath)
-    {
+    public void setPath(List<double[]> newPath) {
         Logger.logFunction("RobotModel.setPath");
-        synchronized (path) {
-            path.clear();
-            path.addAll(newPath);
-            currentPathIndex = 0;
+        if (obstacleMap != null && newPath.size() == 1) {
+            double[] goal = newPath.get(0);
+            List<double[]> astarPath = obstacleMap.getPathfinder()
+                    .findPath(x, y, goal[0], goal[1]);
+
+            synchronized (path) {
+                path.clear();
+                path.addAll(astarPath.isEmpty() ? newPath : astarPath);
+                currentPathIndex = 0;
+            }
+        } else {
+            synchronized (path) {
+                path.clear();
+                path.addAll(newPath);
+                currentPathIndex = 0;
+            }
         }
+
         notifyListeners();
     }
 
